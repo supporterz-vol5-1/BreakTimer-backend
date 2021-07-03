@@ -22,8 +22,7 @@ def create_engine(
         driver = "+" + driver
     url = f"{dialect}{driver}://{username}:{password}@{host}:{port}/{dbname}"
     if dialect == "sqlite":
-        proj = str(Path(__file__).resolve().parent)
-        url = f"sqlite:////{proj}/sample.db"
+        url = f"sqlite:///{str(Path(dbname).resolve())}"
     return sqlalchemy.create_engine(url, echo=echo)
 
 
