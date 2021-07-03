@@ -42,14 +42,16 @@ def register_user(user_name):
 @app.route("/api/<string:user_name>", methods=["POST"])
 def register_work_time(user_name):
     post_data = request.json
+    if post_data is None:
+        return "invalid", 403
     print(f"[DEBUG] {post_data=}")
     today = date.today()
     try:
-        db.update(app.config["ENGINE"], user_name, post_data, day=today)
+        db.update(app.config["ENGINE"], user_name, post_data["data"], day=today)
     except db.UserNotFoundError:
         "The user is not found.", 404
     except db.InvalidTokenError:
-        "The token is invalod.", 403
+        "The token is invalid.", 403
     return "", 200
 
 
