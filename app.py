@@ -42,6 +42,7 @@ def register_user(user_name):
 @app.route("/api/<string:user_name>", methods=["POST"])
 def register_work_time(user_name):
     post_data = request.json
+    print(f"[DEBUG] {post_data=}")
     today = date.today()
     try:
         db.update(app.config["ENGINE"], user_name, post_data, day=today)
