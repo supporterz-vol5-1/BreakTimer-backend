@@ -47,7 +47,7 @@ def register_work_time(user_name):
     print(f"[DEBUG] {post_data=}")
     today = date.today()
     try:
-        db.update(app.config["ENGINE"], user_name, post_data["data"], day=today)
+        db.update(app.config["ENGINE"], user_name, post_data["body"], day=today)
     except db.UserNotFoundError:
         "The user is not found.", 404
     except db.InvalidTokenError:
