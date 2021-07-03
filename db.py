@@ -1,11 +1,11 @@
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Dict, Optional, Union, List
+from typing import Dict, List, Optional, Union
 
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-from models import Base, Language
+from models import Base, WorkTime
 
 
 def create_engine(
@@ -38,7 +38,7 @@ def create_session(engine):
 def update(engine, user_id, request_body: Dict[str, str], day=date):
     session = create_session(engine)
     registerd_data = (
-        session.query(Language)
+        session.query(WorkTime)
         .filter_by(user_id=user_id, lang=request_body["filetype"])
         .first()
     )
@@ -46,8 +46,12 @@ def update(engine, user_id, request_body: Dict[str, str], day=date):
     if registerd_data:
         registerd_data.work_time = registerd_data.work_time + request_body["work_time"]
     else:
-        work_time = Language(user_id=user_id, lang=request_body["filetype"], day=day)
-        work_time.work_time = request_body["work_time"]
+        work_time = WorkTime(
+            user_id=user_id,
+            lang=request_body["filetype"],
+            work_time=request_body["work_time"],
+            day=day,
+        )
         session.add(work_time)
 
     session.commit()
@@ -57,12 +61,12 @@ def get_recent_week(engine, user_id):
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=6)
     data = (
-        session.query(Language)
+        session.query(WorkTime)
         .filter(
             user_id == user_id,
-            Language.day >= one_week_ago,
+            WorkTime.day >= one_week_ago,
         )
-        .order_by(Language.day)
+        .order_by(WorkTime.day)
     )
 
     seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]

@@ -17,10 +17,10 @@ class User(Base):
         return {"id": self.id}
 
 
-class Language(Base):
-    __tablename__ = "languages"
+class WorkTime(Base):
+    __tablename__ = "work_times"
     user_id = Column(String(64), nullable=False, primary_key=True)
-    lang = Column(String(32), nullable=False, primary_key=True)
+    filetype= Column(String(32), nullable=False, primary_key=True)
     work_time = Column(REAL, nullable=False)
     day = Column(Date, nullable=False, primary_key=True)
 
@@ -28,7 +28,7 @@ class Language(Base):
     def serialize(self) -> Dict[str, Union[str, float, datetime]]:
         return {
             "user_id": self.id,
-            "language": self.lang,
+            "filetype": self.lang,
             "work_time": self.work_time,
             "day": self.day,
         }
