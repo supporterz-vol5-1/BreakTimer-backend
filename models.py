@@ -33,3 +33,18 @@ class WorkTime(Base):
             "work_time": self.work_time,
             "day": self.day,
         }
+
+
+class Work(Base):
+    __tablename__ = "works"
+    user_name = Column(String(64), nullable=False, primary_key=True)
+    filetype = Column(String(32), nullable=False, primary_key=True)
+    start = Column(Date, nullable=False)
+
+    @property
+    def serialize(self):
+        return {
+            "user_name": self.user_name,
+            "filetype": self.filetype,
+            "start": self.start,
+        }
