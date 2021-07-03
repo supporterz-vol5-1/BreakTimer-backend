@@ -99,7 +99,7 @@ def register_user(engine, user_name: str) -> Optional[str]:
         return hashed
 
 
-def get_recent_week(engine, user_name):
+def get_recent_week(engine, user_name:str) -> List[Dict[str, float]]:
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=6)
     data = (
@@ -115,3 +115,54 @@ def get_recent_week(engine, user_name):
     for d in data:
         seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
     return seven_days
+
+
+def start_written(engine, user_name: str, now: datetime, request_body) -> None:
+    session = create_session(engine)
+    is_start = (
+        session.query(Work)
+        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
+        .first()
+    )
+    if is_start:
+        # TODO 最大時間の設定
+        work_time = (now - is_start.start).total_seconds()
+        worked = WorkTime(
+            user_name=is_start.user_name,
+            filetype=is_start.filetype,
+            work_time=work_time,
+            day=date.today(),
+        )
+        session.delete(is_start)
+        session.add(worked)
+        session.commit()
+        return None
+    else:
+        work = Work(user_name=user_name, filetype=request_body["filetype"], start=now)
+        session.add(work)
+        session.commit()
+        session.close()
+        return None
+
+
+def stop_written(engine, user_nam: str, now: datetime, request_body) -> None:
+    session = create_engine(engine)
+    is_start = (
+        session.query(Work)
+        .filter(Work.user_name == user_name, Work.filetype == request.body["filetype"])
+        .first()
+    )
+    if is_start:
+        work_time = (now - is_start.start).total_seconds()
+        workded = WorkTime(
+            user_name=is_start.user_name,
+            filetype=is_start.filetype,
+            work_time=work_time,
+            day=date.today(),
+        )
+        session.delete(is_start)
+        session.add(worked)
+        session.commit()
+        return None
+    else:
+        return None

@@ -45,6 +45,7 @@ def register_work_time(user_name):
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
         return "invalid", 403
+
     print(f"[DEBUG] {post_data=}")
     today = date.today()
     try:
@@ -66,6 +67,24 @@ def get_recent_week_data(user_name):
 def get_recent_week_data_with_filetype(user_name, filetype):
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     return jsonify([d.get(filetype, {}) for d in seven_days]), 200
+
+
+@app.route("/api/start/<string:user_name>", methods=["POST"])
+def start_written(user_name: str):
+    post_data: Optional[Dict[str, Any]] = request.json
+    if post_data is None:
+        return "invalid", 403
+    now = datetime.now()
+    db.start_written(engine=app.config["ENGINE"], user_name=user_name, now=now)
+
+
+@app.route("/api/stop/<string:user_name>", methods=["POST"])
+def stop_written(user_name: str):
+    post_data = request.json()
+    if post_data is None:
+        return "invalid", 403
+    now = datetime.now()
+    db.stop_written(engine=app.config["ENGINE"], user_name=user_name, now=now)
 
 
 if __name__ == "__main__":
