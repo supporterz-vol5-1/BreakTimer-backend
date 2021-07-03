@@ -3,7 +3,7 @@ name: autoformat
 on:
   push:
     paths:
-      - "/**/*.py"
+      - "*.py"
 
 jobs:
   autoformat_job:
