@@ -10,9 +10,8 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-    name= Column(String(64), nullable=False, primary_key=True)
+    name = Column(String(64), nullable=False, primary_key=True)
     token = Column(String(128), nullable=False)
-
 
     @property
     def serialize(self) -> Dict[str, str]:
@@ -21,16 +20,16 @@ class User(Base):
 
 class WorkTime(Base):
     __tablename__ = "work_times"
-    user_id = Column(String(64), nullable=False, primary_key=True)
-    filetype= Column(String(32), nullable=False, primary_key=True)
+    user_name = Column(String(64), nullable=False, primary_key=True)
+    filetype = Column(String(32), nullable=False, primary_key=True)
     work_time = Column(REAL, nullable=False)
     day = Column(Date, nullable=False, primary_key=True)
 
     @property
     def serialize(self) -> Dict[str, Union[str, float, datetime]]:
         return {
-            "user_id": self.id,
-            "filetype": self.lang,
+            "user_name": self.name,
+            "filetype": self.filetype,
             "work_time": self.work_time,
             "day": self.day,
         }

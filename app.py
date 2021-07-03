@@ -23,7 +23,7 @@ app.config["ENGINE"] = db.create_engine(
 )
 
 
-@app.route("/api/register/<string:user_name>", method=["GET"])
+@app.route("/api/register/<string:user_name>", methods=["GET"])
 def register_user(user_name):
     status = db.register_user(app.config["ENGINE"], user_name)
     if status is None:
@@ -58,10 +58,10 @@ def get_recent_week_data(user_name):
     return jsonify(seven_days), 200
 
 
-@app.route("/api/<user_name>/<string:language>", methods=["GET"])
-def get_recent_week_data_with_language(user_name, language):
+@app.route("/api/<user_name>/<string:filetype>", methods=["GET"])
+def get_recent_week_data_with_filetype(user_name, filetype):
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
-    return jsonify([d.get(language, {}) for d in seven_days]), 200
+    return jsonify([d.get(filetype, {}) for d in seven_days]), 200
 
 
 if __name__ == "__main__":

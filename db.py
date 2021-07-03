@@ -39,18 +39,23 @@ def create_session(engine):
 
 def update(engine, user_name, request_body: Dict[str, str], day=date):
     session = create_session(engine)
-    is_valid = bool(session.query(User).filter(user_name == user_name).first())
+    is_valid = bool(session.query(User).filter(User.name == user_name).first())
     if not is_valid:
         raise UserNotFoundError
     is_valid = bool(
-        session.query(User).filter(user_name == user_name, token == token).first()
+        session.query(User)
+        .filter(User.name == user_name, User.token == request_body["token"])
+        .first()
     )
     if not is_valid:
         raise InvalidTokenError
 
     registerd_data = (
         session.query(WorkTime)
-        .filter_by(user_name=user_name, lang=request_body["filetype"])
+        .filter(
+            WorkTime.user_name == user_name,
+            WorkTime.filetype == request_body["filetype"],
+        )
         .first()
     )
 
@@ -59,7 +64,7 @@ def update(engine, user_name, request_body: Dict[str, str], day=date):
     else:
         work_time = WorkTime(
             user_name=user_name,
-            lang=request_body["filetype"],
+            filetype=request_body["filetype"],
             work_time=request_body["work_time"],
             day=day,
         )
@@ -78,7 +83,7 @@ class InvalidTokenError(Exception):
 
 def register_user(engine, user_name: str) -> Optional[str]:
     session = create_session(engine)
-    if session.query(User).fillter_by(user_name == user_name).first():
+    if session.query(User).filter(User.name == user_name).first():
         return None
     else:
         now = datetime.now().strftime("%y%m%d%H%M%S")
@@ -86,8 +91,9 @@ def register_user(engine, user_name: str) -> Optional[str]:
         random.shuffle(s)
         shuffled = "".join(s)
         hashed = hashlib.md5(shuffled.encode()).hexdigest()
-        user = User(user_name=user_name, token=hashed)
+        user = User(name=user_name, token=hashed)
         session.add(user)
+        session.commit()
         return hashed
 
 
@@ -97,7 +103,7 @@ def get_recent_week(engine, user_name):
     data = (
         session.query(WorkTime)
         .filter(
-            user_name == user_name,
+            WorkTime.user_name == user_name,
             WorkTime.day >= one_week_ago,
         )
         .order_by(WorkTime.day)
@@ -105,5 +111,5 @@ def get_recent_week(engine, user_name):
 
     seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]
     for d in data:
-        seven_days[(d.day - one_week_ago).days][d.lang] = d.work_time
+        seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
     return seven_days
