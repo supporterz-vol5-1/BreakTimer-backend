@@ -9,7 +9,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
-from models import Base, User, Work, WorkTime
+from models import  User, Work, WorkTime
 
 
 def create_engine(
@@ -31,8 +31,11 @@ def create_engine(
 
 
 def initialize(engine: Engine) -> None:
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
+    for table in (User, Work, WorkTime):
+        table.__table__.drop(bind=engine)
+        table.__table__.create(bind=engine)
 
 
 def create_session(engine: Engine) -> Session:
