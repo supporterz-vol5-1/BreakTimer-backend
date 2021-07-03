@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Union
 
-from sqlalchemy import Date, Integer, String, REAL
+from sqlalchemy import REAL, Date, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import Column
 
@@ -18,11 +18,11 @@ class User(Base):
 
 
 class Language(Base):
-    __talbename__ = "languages"
+    __tablename__ = "languages"
     user_id = Column(String(64), nullable=False, primary_key=True)
     lang = Column(String(32), nullable=False, primary_key=True)
-    work_time = Column(REAL, nullalbe=False)
-    day = Column(Date, nullalbe=False, primary_key=True)
+    work_time = Column(REAL, nullable=False)
+    day = Column(Date, nullable=False, primary_key=True)
 
     @property
     def serialize(self) -> Dict[str, Union[str, float, datetime]]:
