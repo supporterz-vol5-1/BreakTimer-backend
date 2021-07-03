@@ -71,6 +71,7 @@ def update(engine, user_name, request_body: Dict[str, str], day=date):
         session.add(work_time)
 
     session.commit()
+    session.close()
 
 
 class UserNotFoundError(Exception):
@@ -94,6 +95,7 @@ def register_user(engine, user_name: str) -> Optional[str]:
         user = User(name=user_name, token=hashed)
         session.add(user)
         session.commit()
+        session.close()
         return hashed
 
 
