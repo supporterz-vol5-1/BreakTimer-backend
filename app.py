@@ -1,8 +1,9 @@
 import os
 from datetime import date, datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple, Union
 
 from flask import Flask, jsonify, request
+from flask.wrappers import Response
 
 import db
 
@@ -25,23 +26,16 @@ app.config["ENGINE"] = db.create_engine(
 
 
 @app.route("/api/register/<string:user_name>", methods=["GET"])
-def register_user(user_name):
+def register_user(user_name: str) -> Tuple[Union[str, Response], int]:
     status = db.register_user(app.config["ENGINE"], user_name)
     if status is None:
         return "This user name is used already.", 412
     else:
-        return (
-            jsonify(
-                {
-                    "token": status,
-                }
-            ),
-            200,
-        )
+        return (jsonify({"token": status}), 200)
 
 
 @app.route("/api/<string:user_name>", methods=["POST"])
-def register_work_time(user_name):
+def register_work_time(user_name: str) -> Tuple[str, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
         return "invalid", 403
@@ -58,44 +52,59 @@ def register_work_time(user_name):
 
 
 @app.route("/api/<string:user_name>", methods=["GET"])
-def get_recent_week_data(user_name):
+def get_recent_week_data(user_name: str) -> Tuple[Response, int]:
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     return jsonify(seven_days), 200
 
 
 @app.route("/api/<user_name>/<string:filetype>", methods=["GET"])
-def get_recent_week_data_with_filetype(user_name, filetype):
+def get_recent_week_data_with_filetype(
+    user_name: str, filetype: str
+) -> Tuple[Response, int]:
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     return jsonify([d.get(filetype, {}) for d in seven_days]), 200
 
 
 @app.route("/api/start/<string:user_name>", methods=["POST"])
-def start_written(user_name: str):
+def start_written(user_name: str) -> Optional[Tuple[str, int]]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
         return "invalid", 403
     now = datetime.now()
-    db.start_written(engine=app.config["ENGINE"], user_name=user_name, now=now)
+    db.start_written(
+        engine=app.config["ENGINE"],
+        user_name=user_name,
+        now=now,
+        request_body=post_data,
+    )
+    return None
 
 
 @app.route("/api/stop/<string:user_name>", methods=["POST"])
-def stop_written(user_name: str):
-    post_data = request.json()
+def stop_written(user_name: str) -> Optional[Tuple[str, int]]:
+    post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
         return "invalid", 403
     now = datetime.now()
-    db.stop_written(engine=app.config["ENGINE"], user_name=user_name, now=now)
+    db.stop_written(
+        engine=app.config["ENGINE"],
+        user_name=user_name,
+        now=now,
+        request_body=post_data,
+    )
+    return None
 
 
 if __name__ == "__main__":
-    # engine = db.create_engine(
-    #     dialect="sqlite",
-    #     password="",
-    #     host="",
-    #     username="",
-    #     port="",
-    #     dbname="",
-    #     driver="",
-    # )
+    engine = db.create_engine(
+        dialect="sqlite",
+        password="",
+        host="",
+        username="",
+        port="",
+        dbname="sample.db",
+        driver="",
+    )
+    app.config["ENGINE"] = engine
     db.initialize(app.config["ENGINE"])
     app.run(debug=True)

@@ -2,10 +2,12 @@ import hashlib
 import random
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import sqlalchemy
+from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
 
 from models import Base, User, Work, WorkTime
 
@@ -18,8 +20,8 @@ def create_engine(
     port: Union[str, int],
     dbname: str,
     driver: str = "",
-    echo: Optional[bool] = None,
-):
+    echo: Optional[Union[bool, Literal["debug"]]] = None,
+) -> Engine:
     if driver != "":
         driver = "+" + driver
     url = f"{dialect}{driver}://{username}:{password}@{host}:{port}/{dbname}"
@@ -28,16 +30,21 @@ def create_engine(
     return sqlalchemy.create_engine(url, echo=echo)
 
 
-def initialize(engine) -> None:
+def initialize(engine: Engine) -> None:
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
 
-def create_session(engine):
+def create_session(engine: Engine) -> Session:
     return sessionmaker(bind=engine)()
 
 
-def update(engine, user_name, request_body: Dict[str, str], day=date):
+def update(
+    engine: Engine,
+    user_name: str,
+    request_body: Dict[str, str],
+    day=date,
+) -> None:
     session = create_session(engine)
     is_valid = bool(session.query(User).filter(User.name == user_name).first())
     if not is_valid:
@@ -82,7 +89,7 @@ class InvalidTokenError(Exception):
     pass
 
 
-def register_user(engine, user_name: str) -> Optional[str]:
+def register_user(engine: Engine, user_name: str) -> Optional[str]:
     session = create_session(engine)
     if session.query(User).filter(User.name == user_name).first():
         return None
@@ -99,7 +106,7 @@ def register_user(engine, user_name: str) -> Optional[str]:
         return hashed
 
 
-def get_recent_week(engine, user_name:str) -> List[Dict[str, float]]:
+def get_recent_week(engine: Engine, user_name: str) -> List[Dict[str, float]]:
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=6)
     data = (
@@ -117,7 +124,12 @@ def get_recent_week(engine, user_name:str) -> List[Dict[str, float]]:
     return seven_days
 
 
-def start_written(engine, user_name: str, now: datetime, request_body) -> None:
+def start_written(
+    engine: Engine,
+    user_name: str,
+    now: datetime,
+    request_body: Dict[str, str],
+) -> None:
     session = create_session(engine)
     is_start = (
         session.query(Work)
@@ -145,16 +157,21 @@ def start_written(engine, user_name: str, now: datetime, request_body) -> None:
         return None
 
 
-def stop_written(engine, user_nam: str, now: datetime, request_body) -> None:
-    session = create_engine(engine)
+def stop_written(
+    engine: Engine,
+    user_name: str,
+    now: datetime,
+    request_body: Dict[str, str],
+) -> None:
+    session = create_session(engine)
     is_start = (
         session.query(Work)
-        .filter(Work.user_name == user_name, Work.filetype == request.body["filetype"])
+        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
         .first()
     )
     if is_start:
         work_time = (now - is_start.start).total_seconds()
-        workded = WorkTime(
+        worked = WorkTime(
             user_name=is_start.user_name,
             filetype=is_start.filetype,
             work_time=work_time,
