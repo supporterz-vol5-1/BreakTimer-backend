@@ -9,7 +9,7 @@ Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = "items"
+    __tablename__ = "users"
     id = Column(String(64), nullable=False, primary_key=True)
 
     @property

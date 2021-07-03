@@ -1,8 +1,8 @@
 from datetime import date, timedelta
-from typing import Dict, Optional, Union
+from pathlib import Path
+from typing import Dict, Optional, Union, List
 
 import sqlalchemy
-from sqlalchemy.engine import create
 from sqlalchemy.orm import sessionmaker
 
 from models import Base, Language
@@ -21,6 +21,9 @@ def create_engine(
     if driver != "":
         driver = "+" + driver
     url = f"{dialect}{driver}://{username}:{password}@{host}:{port}/{dbname}"
+    if dialect == "sqlite":
+        proj = str(Path(__file__).resolve().parent)
+        url = f"sqlite:////{proj}/sample.db"
     return sqlalchemy.create_engine(url, echo=echo)
 
 
@@ -35,9 +38,11 @@ def create_session(engine):
 
 def update(engine, user_id, request_body: Dict[str, str], day=date):
     session = create_session(engine)
-    registerd_data = Language.query.filter_by(
-        user_id=user_id, lang=request_body["language"]
-    ).first()
+    registerd_data = (
+        session.query(Language)
+        .filter_by(user_id=user_id, lang=request_body["language"])
+        .first()
+    )
 
     if registerd_data:
         registerd_data.work_time = registerd_data.work_time + request_body["work_time"]
@@ -50,12 +55,18 @@ def update(engine, user_id, request_body: Dict[str, str], day=date):
 
 
 def get_recent_week(engine, user_id):
-    one_week_ago = date.today() - timedelta(days=7)
-    data = Language.query.filter(
-        user_id == user_id, Language.day >= one_week_ago
-    ).order_by(Language.day)
+    session = create_session(engine)
+    one_week_ago = date.today() - timedelta(days=6)
+    data = (
+        session.query(Language)
+        .filter(
+            user_id == user_id,
+            Language.day >= one_week_ago,
+        )
+        .order_by(Language.day)
+    )
 
     seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]
     for d in data:
-        seven_days[(d.day - one_week_ago).days][d.lang] = d.worktime
+        seven_days[(d.day - one_week_ago).days][d.lang] = d.work_time
     return seven_days
