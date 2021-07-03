@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
-from models import Base, User, WorkTime
+from models import Base, User, Work, WorkTime
 
 
 def create_engine(
