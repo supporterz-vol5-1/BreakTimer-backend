@@ -13,7 +13,8 @@ app.config["DB_PORT"] = os.environ["DB_PORT"]
 app.config["DB_NAME"] = os.environ["DB_NAME"]
 
 app.config["ENGINE"] = db.create_engine(
-    dialect="postgres",
+    dialect="postgresql",
+    driver="psycopg2",
     password=app.config["DB_PASSWORD"],
     host=app.config["DB_HOST"],
     username=app.config["DB_USERNAME"],
@@ -52,5 +53,5 @@ if __name__ == "__main__":
     #     dbname="",
     #     driver="",
     # )
-    # db.initialize(app.config["ENGINE"])
+    db.initialize(app.config["ENGINE"])
     app.run(debug=True)
