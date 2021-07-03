@@ -36,9 +36,10 @@ def get_recent_week_data(user_id):
     return jsonify(seven_days), 200
 
 
-@app.route("/api/<user_id>/<language>", methods=["GET"])
+@app.route("/api/<user_id>/<string:language>", methods=["GET"])
 def get_recent_week_data_with_language(user_id, language):
-    pass
+    seven_days = db.get_recent_week(app.config["ENGINE"], user_id)
+    return jsonify([d.get(language, {}) for d in seven_days]), 200
 
 
 if __name__ == "__main__":
