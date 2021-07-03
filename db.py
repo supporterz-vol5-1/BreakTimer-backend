@@ -39,6 +39,15 @@ def create_session(engine):
 
 def update(engine, user_name, request_body: Dict[str, str], day=date):
     session = create_session(engine)
+    is_valid = bool(session.query(User).filter(user_name == user_name).first())
+    if not is_valid:
+        raise UserNotFoundError
+    is_valid = bool(
+        session.query(User).filter(user_name == user_name, token == token).first()
+    )
+    if not is_valid:
+        raise InvalidTokenError
+
     registerd_data = (
         session.query(WorkTime)
         .filter_by(user_name=user_name, lang=request_body["filetype"])
@@ -57,6 +66,14 @@ def update(engine, user_name, request_body: Dict[str, str], day=date):
         session.add(work_time)
 
     session.commit()
+
+
+class UserNotFoundError(Exception):
+    pass
+
+
+class InvalidTokenError(Exception):
+    pass
 
 
 def register_user(engine, user_name: str) -> Optional[str]:

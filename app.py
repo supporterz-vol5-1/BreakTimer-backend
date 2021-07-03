@@ -43,7 +43,12 @@ def register_user(user_name):
 def register_work_time(user_name):
     post_data = request.json
     today = date.today()
-    db.update(app.config["ENGINE"], user_name, post_data, day=today)
+    try:
+        db.update(app.config["ENGINE"], user_name, post_data, day=today)
+    except db.UserNotFoundError:
+        "The user is not found.", 404
+    except db.InvalidTokenError:
+        "The token is invalod.", 403
     return "", 200
 
 
