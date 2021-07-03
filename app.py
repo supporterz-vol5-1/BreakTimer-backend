@@ -23,23 +23,39 @@ app.config["ENGINE"] = db.create_engine(
 )
 
 
-@app.route("/api/<string:user_id>", methods=["POST"])
-def register_work_time(user_id):
+@app.route("/api/register/<string:user_name>", method=["GET"])
+def register_user(user_name):
+    status = db.register_user(app.config["ENGINE"], user_name)
+    if status is None:
+        return "This user name is used already.", 412
+    else:
+        return (
+            jsonify(
+                {
+                    "token": status,
+                }
+            ),
+            200,
+        )
+
+
+@app.route("/api/<string:user_name>", methods=["POST"])
+def register_work_time(user_name):
     post_data = request.json
     today = date.today()
-    db.update(app.config["ENGINE"], user_id, post_data, day=today)
+    db.update(app.config["ENGINE"], user_name, post_data, day=today)
     return "", 200
 
 
-@app.route("/api/<string:user_id>", methods=["GET"])
-def get_recent_week_data(user_id):
-    seven_days = db.get_recent_week(app.config["ENGINE"], user_id)
+@app.route("/api/<string:user_name>", methods=["GET"])
+def get_recent_week_data(user_name):
+    seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     return jsonify(seven_days), 200
 
 
-@app.route("/api/<user_id>/<string:language>", methods=["GET"])
-def get_recent_week_data_with_language(user_id, language):
-    seven_days = db.get_recent_week(app.config["ENGINE"], user_id)
+@app.route("/api/<user_name>/<string:language>", methods=["GET"])
+def get_recent_week_data_with_language(user_name, language):
+    seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     return jsonify([d.get(language, {}) for d in seven_days]), 200
 
 

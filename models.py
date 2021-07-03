@@ -10,11 +10,13 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(String(64), nullable=False, primary_key=True)
+    name= Column(String(64), nullable=False, primary_key=True)
+    token = Column(String(128), nullable=False)
+
 
     @property
     def serialize(self) -> Dict[str, str]:
-        return {"id": self.id}
+        return {"id": self.name, "token": self.token}
 
 
 class WorkTime(Base):
