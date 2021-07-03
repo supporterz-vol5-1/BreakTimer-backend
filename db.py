@@ -24,7 +24,7 @@ def create_engine(
 
 def initialize(engine) -> None:
     Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind_engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def create_session(engine):
