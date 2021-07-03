@@ -39,14 +39,14 @@ def update(engine, user_id, request_body: Dict[str, str], day=date):
     session = create_session(engine)
     registerd_data = (
         session.query(Language)
-        .filter_by(user_id=user_id, lang=request_body["language"])
+        .filter_by(user_id=user_id, lang=request_body["filetype"])
         .first()
     )
 
     if registerd_data:
         registerd_data.work_time = registerd_data.work_time + request_body["work_time"]
     else:
-        work_time = Language(user_id=user_id, lang=request_body["language"], day=day)
+        work_time = Language(user_id=user_id, lang=request_body["filetype"], day=day)
         work_time.work_time = request_body["work_time"]
         session.add(work_time)
 
