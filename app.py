@@ -26,7 +26,7 @@ app.config["ENGINE"] = db.create_engine(
 
 
 @app.route("/api/register/<string:user_name>", methods=["GET"])
-def register_user(user_name: str) -> Tuple[Union[str, Response], int]:
+def register_user(user_name: str) -> Tuple[Response, int]:
     status = db.register_user(app.config["ENGINE"], user_name)
     if status is None:
         return jsonify({"message": "This user name is used already."}), 412
@@ -51,11 +51,10 @@ def register_work_time(user_name: str) -> Tuple[Response, int]:
 
 
 @app.route("/api/<string:user_name>", methods=["GET"])
-def get_recent_week_data(user_name: str) -> Tuple[Union[str, Response], int]:
+def get_recent_week_data(user_name: str) -> Tuple[Response, int]:
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
-    print(seven_days)
     if seven_days is None:
-        return "The user is not found.", 404
+        return jsonify({"message": "The user is not found."}), 404
     return jsonify(seven_days), 200
 
 
@@ -63,10 +62,10 @@ def get_recent_week_data(user_name: str) -> Tuple[Union[str, Response], int]:
 def get_recent_week_data_with_filetype(
     user_name: str,
     filetype: str,
-) -> Tuple[Union[str, Response], int]:
+) -> Tuple[Response, int]:
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
     if seven_days is None:
-        return "The user is not found.", 404
+        return jsonify({"message": "The user is not found."}), 404
     return jsonify([d.get(filetype, {}) for d in seven_days]), 200
 
 
