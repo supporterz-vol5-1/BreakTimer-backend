@@ -39,14 +39,16 @@ def register_work_time(user_name: str) -> Tuple[Response, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
         return jsonify({"message": "invalid"}), 403
+    if "token" not in post_data["body"]: 
+        return jsonify({"message": "Must set 'token'"}), 403
 
     today = date.today()
     try:
         db.update(app.config["ENGINE"], user_name, post_data["body"], day=today)
     except db.UserNotFoundError:
-        jsonify({"message": "The user is not found."}), 404
+        return jsonify({"message": "The user is not found."}), 404
     except db.InvalidTokenError:
-        jsonify({"messages": "The token is invalid."}), 403
+        return jsonify({"messages": "The token is invalid."}), 403
     return jsonify({}), 200
 
 

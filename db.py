@@ -6,6 +6,7 @@ from typing import Dict, List, Literal, Optional, Union
 
 import sqlalchemy
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
@@ -34,7 +35,10 @@ def initialize(engine: Engine) -> None:
     # Base.metadata.drop_all(bind=engine)
     # Base.metadata.create_all(bind=engine)
     for table in (User, Work, WorkTime):
-        table.__table__.drop(bind=engine)
+        try:
+            table.__table__.drop(bind=engine)
+        except Exception:
+            pass
         table.__table__.create(bind=engine)
 
 
