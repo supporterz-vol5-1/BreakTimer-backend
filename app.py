@@ -29,31 +29,31 @@ app.config["ENGINE"] = db.create_engine(
 def register_user(user_name: str) -> Tuple[Union[str, Response], int]:
     status = db.register_user(app.config["ENGINE"], user_name)
     if status is None:
-        return "This user name is used already.", 412
+        return jsonify({"message": "This user name is used already."}), 412
     else:
         return (jsonify({"token": status}), 200)
 
 
 @app.route("/api/<string:user_name>", methods=["POST"])
-def register_work_time(user_name: str) -> Tuple[str, int]:
+def register_work_time(user_name: str) -> Tuple[Response, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
-        return "invalid", 403
+        return jsonify({"message": "invalid"}), 403
 
-    print(f"[DEBUG] {post_data=}")
     today = date.today()
     try:
         db.update(app.config["ENGINE"], user_name, post_data["body"], day=today)
     except db.UserNotFoundError:
-        "The user is not found.", 404
+        jsonify({"message": "The user is not found."}), 404
     except db.InvalidTokenError:
-        "The token is invalid.", 403
-    return "", 200
+        jsonify({"messages": "The token is invalid."}), 403
+    return jsonify({}), 200
 
 
 @app.route("/api/<string:user_name>", methods=["GET"])
 def get_recent_week_data(user_name: str) -> Tuple[Union[str, Response], int]:
     seven_days = db.get_recent_week(app.config["ENGINE"], user_name)
+    print(seven_days)
     if seven_days is None:
         return "The user is not found.", 404
     return jsonify(seven_days), 200
@@ -71,10 +71,10 @@ def get_recent_week_data_with_filetype(
 
 
 @app.route("/api/start/<string:user_name>", methods=["POST"])
-def start_written(user_name: str) -> Optional[Tuple[str, int]]:
-    post_data: Optional[Dict[str, Any]] = request.json
+def start_written(user_name: str) -> Tuple[Response, int]:
+    post_data = request.json
     if post_data is None:
-        return "invalid", 403
+        return jsonify({"message": "invalid"}), 403
     now = datetime.now()
     db.start_written(
         engine=app.config["ENGINE"],
@@ -82,14 +82,14 @@ def start_written(user_name: str) -> Optional[Tuple[str, int]]:
         now=now,
         request_body=post_data,
     )
-    return None
+    return jsonify({}), 200
 
 
 @app.route("/api/stop/<string:user_name>", methods=["POST"])
-def stop_written(user_name: str) -> Optional[Tuple[str, int]]:
+def stop_written(user_name: str) -> Tuple[Response, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
-        return "invalid", 403
+        return jsonify({"message": "invalid"}), 403
     now = datetime.now()
     db.stop_written(
         engine=app.config["ENGINE"],
@@ -97,7 +97,7 @@ def stop_written(user_name: str) -> Optional[Tuple[str, int]]:
         now=now,
         request_body=post_data,
     )
-    return None
+    return jsonify({}), 200
 
 
 if __name__ == "__main__":
