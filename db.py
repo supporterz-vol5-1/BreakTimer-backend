@@ -9,7 +9,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
-from models import  User, Work, WorkTime
+from models import User, Work, WorkTime
 
 
 def create_engine(
@@ -109,7 +109,7 @@ def register_user(engine: Engine, user_name: str) -> Optional[str]:
         return hashed
 
 
-def get_recent_week(engine: Engine, user_name: str) -> List[Dict[str, float]]:
+def get_recent_week(engine: Engine, user_name: str) -> Optional[List[Dict[str, float]]]:
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=6)
     data = (
@@ -119,12 +119,15 @@ def get_recent_week(engine: Engine, user_name: str) -> List[Dict[str, float]]:
             WorkTime.day >= one_week_ago,
         )
         .order_by(WorkTime.day)
-    )
-
-    seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]
-    for d in data:
-        seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
-    return seven_days
+    ).all()
+    print(data)
+    if data:
+        seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]
+        for d in data:
+            seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
+        return seven_days
+    else:
+        return None
 
 
 def start_written(
