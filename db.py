@@ -2,7 +2,7 @@ import hashlib
 import random
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, NoReturn, Optional, Union
 
 import sqlalchemy
 from sqlalchemy.engine.base import Engine
@@ -49,32 +49,41 @@ def create_session(engine: Engine) -> Session:
     return sessionmaker(bind=engine)()
 
 
+def is_valid_user(engine: Engine, user_name: str, token: str) -> NoReturn:
+    session = create_session(engine)
+    is_exists = bool(session.query(User).filter(User.name == user_name).first)
+    if not is_exists:
+        session.close()
+        raise UserNotFoundError
+    is_valid_token = bool(
+        session.query(User).filter(User.name == user_name, User.token == token).first())
+    if not is_valid_token:
+        session.close()
+        raise InvalidTokenError
+
+
 def update(
     engine: Engine,
     user_name: str,
     request_body: Dict[str, str],
     day=date,
 ) -> None:
+    is_valid_user(engine, user_name, request_body["token"])
+    # DO NOT USE THIS !!!!
     session = create_session(engine)
-    is_valid = bool(session.query(User).filter(User.name == user_name).first())
-    if not is_valid:
-        raise UserNotFoundError
-    is_valid = bool(
-        session.query(User)
-        .filter(User.name == user_name, User.token == request_body["token"])
-        .first()
-    )
-    if not is_valid:
-        raise InvalidTokenError
+    # is_valid = bool(session.query(User).filter(User.name == user_name).first())
+    # if not is_valid:
+    #     raise UserNotFoundError
+    # is_valid = bool(
+    #     session.query(User).filter(User.name == user_name,
+    #                                User.token == request_body["token"]).first())
+    # if not is_valid:
+    #     raise InvalidTokenError
 
-    registerd_data = (
-        session.query(WorkTime)
-        .filter(
-            WorkTime.user_name == user_name,
-            WorkTime.filetype == request_body["filetype"],
-        )
-        .first()
-    )
+    registerd_data = (session.query(WorkTime).filter(
+        WorkTime.user_name == user_name,
+        WorkTime.filetype == request_body["filetype"],
+    ).first())
 
     if registerd_data:
         registerd_data.work_time = registerd_data.work_time + request_body["work_time"]
@@ -121,15 +130,11 @@ def get_recent_week(engine: Engine, user_name: str) -> Optional[List[Dict[str, f
     one_week_ago = date.today() - timedelta(days=7)
     if session.query(User).filter(User.name == user_name).first():
         seven_days: List[Dict[str, float]] = [{} for _ in range(7)]
-        data = (
-            session.query(WorkTime)
-            .filter(
-                WorkTime.user_name == user_name,
-                WorkTime.day >= one_week_ago,
-                WorkTime.day < date.today(),
-            )
-            .order_by(WorkTime.day)
-        ).all()
+        data = (session.query(WorkTime).filter(
+            WorkTime.user_name == user_name,
+            WorkTime.day >= one_week_ago,
+            WorkTime.day < date.today(),
+        ).order_by(WorkTime.day)).all()
         if data:
             for d in data:
                 seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
@@ -144,20 +149,22 @@ def start_written(
     now: datetime,
     request_body: Dict[str, str],
 ) -> None:
+    is_valid_user(engine, user_name, request_body["token"])
+    # Every human can write only one file at once
     session = create_session(engine)
-    is_start = (
-        session.query(Work)
-        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
-        .first()
-    )
+    is_start = (session.query(Work).filter(
+        Work.user_name == user_name, Work.filetype == request_body["filetype"]).first())
+    # is_start = (session.query(Work).filter(Work.user_name == user_name).first())
     if is_start:
-        # TODO 最大時間の設定
+        # close old work
         work_time = (now - is_start.start).total_seconds()
+        # TODO 最大時間の設定
+        # if work_time <= ????:
         worked = WorkTime(
             user_name=is_start.user_name,
             filetype=is_start.filetype,
             work_time=work_time,
-            day=date.today(),
+            day=date.today(),    # 終了した日付で登録される
         )
         session.delete(is_start)
         session.add(worked)
@@ -177,12 +184,11 @@ def stop_written(
     now: datetime,
     request_body: Dict[str, str],
 ) -> None:
+    is_valid_user(engine, user_name, request_body["token"])
     session = create_session(engine)
-    is_start = (
-        session.query(Work)
-        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
-        .first()
-    )
+    is_start = (session.query(Work).filter(
+        Work.user_name == user_name, Work.filetype == request_body["filetype"]).first())
+    # is_start = (session.query(Work).filter(Work.user_name == user_name).first())
     if is_start:
         work_time = (now - is_start.start).total_seconds()
         worked = WorkTime(
