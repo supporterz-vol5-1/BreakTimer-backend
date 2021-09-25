@@ -48,7 +48,7 @@ def register_work_time(user_name: str) -> Tuple[Response, int]:
     except db.UserNotFoundError:
         return jsonify({"message": "The user is not found."}), 404
     except db.InvalidTokenError:
-        return jsonify({"messages": "The token is invalid."}), 403
+        return jsonify({"message": "The token is invalid."}), 403
     return jsonify({}), 200
 
 
