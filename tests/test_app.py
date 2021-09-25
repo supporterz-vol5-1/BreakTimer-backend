@@ -87,6 +87,76 @@ def test_post_data_must_be_json(client):
     assert r.status_code == 200
 
 
+@pytest.mark.freeze_time("2000-01-01 12:00:00")
+def test_start_writing(client):
+    """User can register start time
+    """
+    # request must has json
+    r = client.post("/api/start/hackathon-vol5-1", data={"body": "invalid"})
+    assert r.status_code == 403
+
+    # user must be exist
+    r = client.post("/api/start/not-exists",
+                    json={"body": {
+                        "filetype": "python",
+                        "token": "not_exists"
+                    }})
+    assert r.status_code == 404
+
+    # must has valid token
+    r = client.post("/api/start/hackathon-vol5-1",
+                    json={"body": {
+                        "filetype": "python",
+                        "token": "invalid token"
+                    }})
+    assert r.status_code == 403
+
+    # valid request
+    r = client.post("/api/start/hackathon-vol5-1",
+                    json={
+                        "body": {
+                            "filetype": "python",
+                            "token": "56af743f9ff7a944bc57f26bb9b1605b",
+                        }
+                    })
+    assert r.status_code == 200
+    # dbに本当に入ってるかテストしたい
+
+@pytest.mark.freeze_time("2000-01-01 12:00:00")
+def test_stop_writing(client):
+    """User can register stop time
+    """
+    # request must has json
+    r = client.post("/api/stop/hackathon-vol5-1", data={"body": "invalid"})
+    assert r.status_code == 403
+
+    # user must be exist
+    r = client.post("/api/stop/not-exists",
+                    json={"body": {
+                        "filetype": "python",
+                        "token": "not_exists"
+                    }})
+    assert r.status_code == 404
+
+    # must has valid token
+    r = client.post("/api/stop/hackathon-vol5-1",
+                    json={"body": {
+                        "filetype": "python",
+                        "token": "invalid token"
+                    }})
+    assert r.status_code == 403
+
+    # valid request
+    r = client.post("/api/stop/hackathon-vol5-1",
+                    json={
+                        "body": {
+                            "filetype": "python",
+                            "token": "56af743f9ff7a944bc57f26bb9b1605b",
+                        }
+                    })
+    assert r.status_code == 200
+    # dbに本当に入ってるかテストしたい
+
 def test_post_data_without_token(client):
     """User should not post without token
     """

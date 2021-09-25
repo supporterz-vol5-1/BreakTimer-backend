@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 from flask import Flask, jsonify, request
 from flask.wrappers import Response
+from sqlalchemy.engine.base import Engine
 
 import db
 
@@ -62,12 +63,17 @@ def start_written(user_name: str) -> Tuple[Response, int]:
     if post_data is None:
         return jsonify({"message": "invalid"}), 403
     now = datetime.now()
-    db.start_written(
-        engine=app.config["ENGINE"],
-        user_name=user_name,
-        now=now,
-        request_body=post_data,
-    )
+    try:
+        db.start_written(
+            engine=app.config["ENGINE"],
+            user_name=user_name,
+            now=now,
+            request_body=post_data,
+        )
+    except db.UserNotFoundError:
+        return jsonify({"message": "The user is not found."}), 404
+    except db.InvalidTokenError:
+        return jsonify({"message": "The token is invalid."}), 403
     return jsonify({}), 200
 
 
@@ -77,16 +83,21 @@ def stop_written(user_name: str) -> Tuple[Response, int]:
     if post_data is None:
         return jsonify({"message": "invalid"}), 403
     now = datetime.now()
-    db.stop_written(
-        engine=app.config["ENGINE"],
-        user_name=user_name,
-        now=now,
-        request_body=post_data,
-    )
+    try:
+        db.stop_written(
+            engine=app.config["ENGINE"],
+            user_name=user_name,
+            now=now,
+            request_body=post_data,
+        )
+    except db.UserNotFoundError:
+        return jsonify({"message": "The user is not found."}), 404
+    except db.InvalidTokenError:
+        return jsonify({"message": "The token is invalid."}), 403
     return jsonify({}), 200
 
 
-def initialize_config():
+def initialize_config() -> Engine:
     app.config["DB_USERNAME"] = os.environ.get("DB_USERNAME", "")
     app.config["DB_PASSWORD"] = os.environ.get("DB_PASSWORD", "")
     app.config["DB_HOST"] = os.environ.get("DB_HOST", "")
