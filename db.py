@@ -51,12 +51,13 @@ def create_session(engine: Engine) -> Session:
 
 def is_valid_user(engine: Engine, user_name: str, token: str) -> NoReturn:
     session = create_session(engine)
-    is_exists = bool(session.query(User).filter(User.name == user_name).first)
+    is_exists = bool(session.query(User).filter(User.name == user_name).first())
     if not is_exists:
         session.close()
         raise UserNotFoundError
     is_valid_token = bool(
         session.query(User).filter(User.name == user_name, User.token == token).first())
+
     if not is_valid_token:
         session.close()
         raise InvalidTokenError
@@ -68,7 +69,7 @@ def update(
     request_body: Dict[str, str],
     day=date,
 ) -> None:
-    is_valid_user(engine, user_name, request_body["token"])
+    is_valid_user(engine, user_name, request_body.get("token", ""))
     # DO NOT USE THIS !!!!
     session = create_session(engine)
     # is_valid = bool(session.query(User).filter(User.name == user_name).first())
@@ -149,7 +150,7 @@ def start_written(
     now: datetime,
     request_body: Dict[str, str],
 ) -> None:
-    is_valid_user(engine, user_name, request_body["token"])
+    is_valid_user(engine, user_name, request_body.get("token", ""))
     # Every human can write only one file at once
     session = create_session(engine)
     is_start = (session.query(Work).filter(
@@ -184,7 +185,7 @@ def stop_written(
     now: datetime,
     request_body: Dict[str, str],
 ) -> None:
-    is_valid_user(engine, user_name, request_body["token"])
+    is_valid_user(engine, user_name, request_body.get("token", ""))
     session = create_session(engine)
     is_start = (session.query(Work).filter(
         Work.user_name == user_name, Work.filetype == request_body["filetype"]).first())
