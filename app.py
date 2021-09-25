@@ -8,21 +8,6 @@ from flask.wrappers import Response
 import db
 
 app = Flask(__name__)
-app.config["DB_USERNAME"] = os.environ["DB_USERNAME"]
-app.config["DB_PASSWORD"] = os.environ["DB_PASSWORD"]
-app.config["DB_HOST"] = os.environ["DB_HOST"]
-app.config["DB_PORT"] = os.environ["DB_PORT"]
-app.config["DB_NAME"] = os.environ["DB_NAME"]
-
-app.config["ENGINE"] = db.create_engine(
-    dialect="postgresql",
-    driver="psycopg2",
-    password=app.config["DB_PASSWORD"],
-    host=app.config["DB_HOST"],
-    username=app.config["DB_USERNAME"],
-    port=app.config["DB_PORT"],
-    dbname=app.config["DB_NAME"],
-)
 
 
 @app.route("/api/register/<string:user_name>", methods=["GET"])
@@ -102,6 +87,7 @@ def stop_written(user_name: str) -> Tuple[Response, int]:
 
 
 if __name__ == "__main__":
+    # for run locally
     engine = db.create_engine(
         dialect="sqlite",
         password="",
@@ -114,3 +100,20 @@ if __name__ == "__main__":
     app.config["ENGINE"] = engine
     db.initialize(app.config["ENGINE"])
     app.run(debug=True)
+else:
+    # for run by gunicorn
+    app.config["DB_USERNAME"] = os.environ["DB_USERNAME"]
+    app.config["DB_PASSWORD"] = os.environ["DB_PASSWORD"]
+    app.config["DB_HOST"] = os.environ["DB_HOST"]
+    app.config["DB_PORT"] = os.environ["DB_PORT"]
+    app.config["DB_NAME"] = os.environ["DB_NAME"]
+
+    app.config["ENGINE"] = db.create_engine(
+        dialect="postgresql",
+        driver="psycopg2",
+        password=app.config["DB_PASSWORD"],
+        host=app.config["DB_HOST"],
+        username=app.config["DB_USERNAME"],
+        port=app.config["DB_PORT"],
+        dbname=app.config["DB_NAME"],
+    )
