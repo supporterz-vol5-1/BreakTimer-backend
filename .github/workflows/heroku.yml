@@ -1,27 +1,17 @@
 name: Deploy to heroku
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - pytest
     branches:
       - main
+    types:
+      - completed
+
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-        python-version: 3.8
-      - name: Test
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          pytest ./tests/*.py
-
   deploy:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

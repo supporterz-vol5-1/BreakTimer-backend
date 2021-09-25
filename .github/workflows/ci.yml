@@ -3,7 +3,7 @@ name: autoformat
 on:
   push:
     paths:
-      - "*.py"
+      - "**/*.py"
 
 jobs:
   autoformat_job:
@@ -34,5 +34,5 @@ jobs:
             git config user.name = "github-actions"
             git config user.email = "github-actions[bot]@users.noreply.github.com"
             git add -u
-            git commit -m "auto format by github actions"
+            git commit -m ":pencil: Auto format by Github Actions"
             git push origin
