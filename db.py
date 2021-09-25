@@ -116,19 +116,19 @@ def register_user(engine: Engine, user_name: str) -> Optional[str]:
 def get_recent_week(engine: Engine, user_name: str) -> Optional[List[Dict[str, float]]]:
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=6)
-    data = (
-        session.query(WorkTime)
-        .filter(
-            WorkTime.user_name == user_name,
-            WorkTime.day >= one_week_ago,
-        )
-        .order_by(WorkTime.day)
-    ).all()
-    print(data)
-    if data:
-        seven_days: List[Dict[str, Union[str, float]]] = [{} for _ in range(7)]
-        for d in data:
-            seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
+    if session.query(User).filter(User.name == user_name).first():
+        seven_days: List[Dict[str,  float]] = [{} for _ in range(7)]
+        data = (
+            session.query(WorkTime)
+            .filter(
+                WorkTime.user_name == user_name,
+                WorkTime.day >= one_week_ago,
+            )
+            .order_by(WorkTime.day)
+        ).all()
+        if data:
+            for d in data:
+                seven_days[(d.day - one_week_ago).days][d.filetype] = d.work_time
         return seven_days
     else:
         return None
