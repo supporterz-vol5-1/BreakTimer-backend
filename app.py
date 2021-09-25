@@ -12,14 +12,29 @@ app = Flask(__name__)
 
 @app.route("/api/register/<string:user_name>", methods=["GET"])
 def register_user(user_name: str) -> Tuple[Response, int]:
-    status = db.register_user(app.config["ENGINE"], user_name)
+    status = db.register_user(app.config["ENGINE"], avatar="", user_name=user_name)
     if status is None:
         return jsonify({"message": "This user name is used already."}), 412
     else:
         return (jsonify({"token": status}), 200)
 
 
+@app.route("/apiv2/register", methods=["POST"])
+def register_user() -> Tuple[Response, int]:
+    if request.headers["Content-Type"] != "application/json":
+        return jsonify({"message": "Invalid Content-Type"}, 400)
+
+    d = request.json
+    status = db.register_user(app.config["ENGINE"],
+                              user_name=d["login"],
+                              avatar=user["avatar_url"])
+    if status is None:
+        return jsonify({"message": "This user name is used already."}), 412
+    return jsonify({"token": status}), 200
+
+
 @app.route("/api/<string:user_name>", methods=["POST"])
+@app.route("/apiv2/<string:user_name>", methods=["POST"])
 def register_work_time(user_name: str) -> Tuple[Response, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:
@@ -56,7 +71,16 @@ def get_recent_week_data_with_filetype(
     return jsonify([{filetype: d.get(filetype, 0)} for d in seven_days]), 200
 
 
+@app.route("/apiv2/user/<string:user_name>", methods=["GET"])
+def get_user_info() -> Tuple[Response, int]:
+    # WIP
+    # TODO その情報にアクセスできる人かどうかの判定をする
+    # headerにtokenとか？
+    user = db.get_user_info(app.config["ENGINE"], user_name=user_name)
+
+
 @app.route("/api/start/<string:user_name>", methods=["POST"])
+@app.route("/apiv2/start/<string:user_name>", methods=["POST"])
 def start_written(user_name: str) -> Tuple[Response, int]:
     post_data = request.json
     if post_data is None:
@@ -72,6 +96,7 @@ def start_written(user_name: str) -> Tuple[Response, int]:
 
 
 @app.route("/api/stop/<string:user_name>", methods=["POST"])
+@app.route("/apiv2/stop/<string:user_name>", methods=["POST"])
 def stop_written(user_name: str) -> Tuple[Response, int]:
     post_data: Optional[Dict[str, Any]] = request.json
     if post_data is None:

@@ -60,21 +60,15 @@ def update(
     if not is_valid:
         raise UserNotFoundError
     is_valid = bool(
-        session.query(User)
-        .filter(User.name == user_name, User.token == request_body["token"])
-        .first()
-    )
+        session.query(User).filter(User.name == user_name,
+                                   User.token == request_body["token"]).first())
     if not is_valid:
         raise InvalidTokenError
 
-    registerd_data = (
-        session.query(WorkTime)
-        .filter(
-            WorkTime.user_name == user_name,
-            WorkTime.filetype == request_body["filetype"],
-        )
-        .first()
-    )
+    registerd_data = (session.query(WorkTime).filter(
+        WorkTime.user_name == user_name,
+        WorkTime.filetype == request_body["filetype"],
+    ).first())
 
     if registerd_data:
         registerd_data.work_time = registerd_data.work_time + request_body["work_time"]
@@ -99,7 +93,7 @@ class InvalidTokenError(Exception):
     pass
 
 
-def register_user(engine: Engine, user_name: str) -> Optional[str]:
+def register_user(engine: Engine, user_name: str, avatar: str) -> Optional[str]:
     session = create_session(engine)
     if session.query(User).filter(User.name == user_name).first():
         return None
@@ -109,11 +103,21 @@ def register_user(engine: Engine, user_name: str) -> Optional[str]:
         random.shuffle(s)
         shuffled = "".join(s)
         hashed = hashlib.md5(shuffled.encode()).hexdigest()
-        user = User(name=user_name, token=hashed)
+        user = User(name=user_name, token=hashed, avatar=avatar)
         session.add(user)
         session.commit()
         session.close()
         return hashed
+
+
+def get_user_info(engine: Engine, user_name: str) -> Optional[User]:
+    session = create_session(engine)
+    user = session.query(User).filter(User.name == user_name).first()
+    session.close()
+    if not user:
+        return None
+    else:
+        return user
 
 
 def get_recent_week(engine: Engine, user_name: str) -> Optional[List[Dict[str, float]]]:
@@ -145,11 +149,8 @@ def start_written(
     request_body: Dict[str, str],
 ) -> None:
     session = create_session(engine)
-    is_start = (
-        session.query(Work)
-        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
-        .first()
-    )
+    is_start = (session.query(Work).filter(
+        Work.user_name == user_name, Work.filetype == request_body["filetype"]).first())
     if is_start:
         # TODO 最大時間の設定
         work_time = (now - is_start.start).total_seconds()
@@ -178,11 +179,8 @@ def stop_written(
     request_body: Dict[str, str],
 ) -> None:
     session = create_session(engine)
-    is_start = (
-        session.query(Work)
-        .filter(Work.user_name == user_name, Work.filetype == request_body["filetype"])
-        .first()
-    )
+    is_start = (session.query(Work).filter(
+        Work.user_name == user_name, Work.filetype == request_body["filetype"]).first())
     if is_start:
         work_time = (now - is_start.start).total_seconds()
         worked = WorkTime(

@@ -14,5 +14,5 @@ insert into work_times( user_name, filetype, work_time, day ) values( 'hackathon
 insert into work_times( user_name, filetype, work_time, day ) values( 'hackathon-vol5-1', 'cobol', 1.00, '2021-07-03' ) ;
 insert into work_times( user_name, filetype, work_time, day ) values( 'hackathon-vol5-1', 'typescript', 888.20, '2021-07-03' ) ;
 insert into work_times( user_name, filetype, work_time, day ) values( 'hackathon-vol5-1', 'python', 3000.11, '2021-07-03' ) ;
-insert into users values( 'hackathon-vol5-1', '56af743f9ff7a944bc57f26bb9b1605b' ) ;
-insert into users values( 'non-active',       'thisissamplethisissamplethisissa' ) ;
+insert into users(name, token, avatar) values( 'hackathon-vol5-1', '56af743f9ff7a944bc57f26bb9b1605b', '') ;
+insert into users(name, token, avatar) values( 'non-active',       'thisissamplethisissamplethisissa', '') ;

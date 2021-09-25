@@ -11,6 +11,7 @@ from sqlalchemy.util.compat import dataclass_fields
 mapper_registry = registry()
 
 
+# github oauthでしか取れない情報をsession情報をして持ってデータのフィルタリングをしたい
 @mapper_registry.mapped
 @dataclass
 class User:
@@ -19,9 +20,11 @@ class User:
         mapper_registry.metadata,
         Column("name", String(64), nullable=False, primary_key=True),
         Column("token", String(128), nullable=False),
+        Column("avatar", String(128))
     )
     name: str
     token: str
+    avatar: str
 
 
 #
