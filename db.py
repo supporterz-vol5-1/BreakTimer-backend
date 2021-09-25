@@ -28,6 +28,9 @@ def create_engine(
     url = f"{dialect}{driver}://{username}:{password}@{host}:{port}/{dbname}"
     if dialect == "sqlite":
         url = f"sqlite:///{str(Path(dbname).resolve())}"
+    else:
+        # if specify postgresql, port must be int
+        assert type(port) == int
     return sqlalchemy.create_engine(url, echo=echo)
 
 
@@ -117,13 +120,13 @@ def get_recent_week(engine: Engine, user_name: str) -> Optional[List[Dict[str, f
     session = create_session(engine)
     one_week_ago = date.today() - timedelta(days=7)
     if session.query(User).filter(User.name == user_name).first():
-        seven_days: List[Dict[str,  float]] = [{} for _ in range(7)]
+        seven_days: List[Dict[str, float]] = [{} for _ in range(7)]
         data = (
             session.query(WorkTime)
             .filter(
                 WorkTime.user_name == user_name,
                 WorkTime.day >= one_week_ago,
-                WorkTime.day < date.today()
+                WorkTime.day < date.today(),
             )
             .order_by(WorkTime.day)
         ).all()
