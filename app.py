@@ -68,7 +68,7 @@ def start_written(user_name: str) -> Tuple[Response, int]:
             engine=app.config["ENGINE"],
             user_name=user_name,
             now=now,
-            request_body=post_data,
+            request_body=post_data["body"],
         )
     except db.UserNotFoundError:
         return jsonify({"message": "The user is not found."}), 404
@@ -88,7 +88,7 @@ def stop_written(user_name: str) -> Tuple[Response, int]:
             engine=app.config["ENGINE"],
             user_name=user_name,
             now=now,
-            request_body=post_data,
+            request_body=post_data["body"],
         )
     except db.UserNotFoundError:
         return jsonify({"message": "The user is not found."}), 404
