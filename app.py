@@ -90,7 +90,7 @@ def initialize_config():
     app.config["DB_USERNAME"] = os.environ.get("DB_USERNAME", "")
     app.config["DB_PASSWORD"] = os.environ.get("DB_PASSWORD", "")
     app.config["DB_HOST"] = os.environ.get("DB_HOST", "")
-    app.config["DB_PORT"] = os.environ.get("DB_PORT", "")
+    app.config["DB_PORT"] = os.environ.get("DB_PORT", 0)
     app.config["DB_NAME"] = os.environ.get("DB_NAME", "")
 
     return db.create_engine(
