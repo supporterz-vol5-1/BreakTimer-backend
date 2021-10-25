@@ -12,6 +12,18 @@ This repogitory is a backend for *BreakTimer*.
     Register user. If `username` exists already, return `412` as status code.
     Return token. The token is show only once. **Dont forget memorize it**.
 
+    <!-- ```plantuml                                -->
+    <!-- Editor->API : GET /api/register/<username> -->
+    <!-- API->DB : The user exists already?         -->
+    <!-- DB->API : Information                      -->
+    <!-- alt Exists already                         -->
+    <!--    API->Editor : Return 412                -->
+    <!-- else Not Exist                             -->
+    <!--     API->DB : Register user                -->
+    <!--     API->Editor : Return token             -->
+    <!-- end                                        -->
+    <!-- ```                                        -->
+
 - `/api/<username>`, `POST`
     **REGACY ENDPONINT**
     Register work time.
@@ -72,6 +84,21 @@ This repogitory is a backend for *BreakTimer*.
     }
     ```
 
+    <!-- ```plantuml                              -->
+    <!-- Editor->API : POST:/api/start/<username> -->
+
+    <!-- API->DB : Start already?                 -->
+
+    <!-- DB->API : Information                    -->
+
+    <!-- opt Exists already                       -->
+    <!--     API->API : Calculate work time       -->
+    <!--     API->DB : Stop and register old work -->
+    <!-- end                                      -->
+
+    <!-- API->DB : Register work as start one     -->
+    <!-- ```                                      -->
+
 - `/api/stop/<username>`, `POST`
     Register specified user's work as finished one.
     If the work does not exist, nothing happen.
@@ -85,4 +112,15 @@ This repogitory is a backend for *BreakTimer*.
     }
     ```
 
--
+    <!-- ```plantuml                                             -->
+    <!-- Editor->API : POST:/api/stop/<username>                 -->
+
+    <!-- API->DB : Exists corresponding one?                     -->
+
+    <!-- DB->API : Information                                   -->
+
+    <!-- opt Exists                                              -->
+    <!--     API->API : Calculate work time if exists            -->
+    <!--     API->DB : Stop work and register it as finifhed one -->
+    <!-- end                                                     -->
+    <!-- ```                                                     -->
